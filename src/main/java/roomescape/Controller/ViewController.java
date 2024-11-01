@@ -10,4 +10,9 @@ public class ViewController {
   public String home() {
     return "home";
   }
+
+  @GetMapping("/reservation")
+  public String reservation() {
+    return "reservation";
+  }
 }
