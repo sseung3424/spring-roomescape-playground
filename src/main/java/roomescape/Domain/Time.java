@@ -15,13 +15,10 @@ public class Time {
     return id;
   }
 
-  public String getTime() {
-    return time;
-  }
+  public String getTime() { return time; }
 
-  public static Time toEntity (Time time, Long id) {
-    return new Time(
-        id, time.getTime()
-    );
+  @Override
+  public String toString() {
+    return time;
   }
 }

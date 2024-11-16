@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import roomescape.Domain.Reservation;
+import roomescape.Domain.Time;
 import roomescape.Exception.NotFoundReservationException;
 
 @RestController
@@ -33,7 +34,7 @@ public class ReservationController {
 
     if (reservation.getName() == null || reservation.getName().isEmpty() ||
         reservation.getDate() == null || reservation.getDate().isEmpty() ||
-        reservation.getTime() == null || reservation.getTime().isEmpty()) {
+        reservation.getTime() == null) {
       throw new NotFoundReservationException("Reservation not found");
     }
 
@@ -43,14 +44,15 @@ public class ReservationController {
       PreparedStatement ps = connection.prepareStatement(sql, new String[] {"id"});
       ps.setString(1, reservation.getName());
       ps.setString(2, reservation.getDate());
-      ps.setString(3, reservation.getTime());
+      ps.setString(3, reservation.getTime().toString());
       return ps;
     }, keyHolder);
 
     Long id = keyHolder.getKey().longValue();
 
     Reservation savedReservation = jdbcTemplate.queryForObject(
-        "SELECT * FROM reservation WHERE id = ?",
+        "SELECT r.id as reservation_id, r.name,  r.date, t.id as time_id, t.time as time_value"
+            + "FROM reservation as r inner join time as t on r.time_id = t.id WHERE id = ?",
         reservationRowMapper,
         id
     );
@@ -62,7 +64,8 @@ public class ReservationController {
   @GetMapping("/reservations")
   public ResponseEntity<List<Reservation>> read() {
     List<Reservation> reservations = jdbcTemplate.query(
-        "SELECT * FROM reservation",
+        "SELECT r.id as reservation_id, r.name,  r.date, t.id as time_id, t.time as time_value "
+            + "FROM reservation as r inner join time as t on r.time_id = t.id",
         reservationRowMapper
     );
 
@@ -73,7 +76,8 @@ public class ReservationController {
   public ResponseEntity<Void> delete(@PathVariable long id) {
 
     List<Reservation> reservations = jdbcTemplate.query(
-        "SELECT * FROM reservation WHERE id = ?",
+        "SELECT r.id as reservation_id, r.name,  r.date, t.id as time_id, t.time as time_value "
+            + "FROM reservation as r inner join time as t on r.time_id = t.id WHERE id = ?",
         reservationRowMapper,
         id
     );
@@ -92,7 +96,10 @@ public class ReservationController {
         resultSet.getLong("id"),
         resultSet.getString("name"),
         resultSet.getString("date"),
-        resultSet.getString("time")
+        new Time(
+            resultSet.getLong("time_id"),
+            resultSet.getString("time_value")
+        )
     );
   };
 
