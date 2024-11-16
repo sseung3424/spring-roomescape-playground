@@ -16,9 +16,4 @@ public class Time {
   }
 
   public String getTime() { return time; }
-
-  @Override
-  public String toString() {
-    return time;
-  }
 }
